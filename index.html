@@ -5,20 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>成為富婆GOGOGO - Sakura Planner</title>
 
-    <!-- ========================================== -->
-    <!-- 👇 修改為 白底 + 粉紅錢袋 (專屬自訂圖示) 👇 -->
-    <!-- ========================================== -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="富婆記帳">
     
-    <!-- 使用 Data URI 直接嵌入白底粉紅錢袋圖示，完美支援 iPhone 且不變黑 -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='white'/%3E%3Cpath d='M50 140 C 40 90, 70 60, 96 60 C 122 60, 152 90, 142 140 C 135 170, 57 170, 50 140 Z' fill='%23FF85A1'/%3E%3Crect x='80' y='50' width='32' height='15' rx='5' fill='%23FFB7C5'/%3E%3Cpath d='M80 55 L 70 30 L 96 45 L 122 30 L 112 55 Z' fill='%23FF85A1'/%3E%3Ctext x='96' y='130' font-size='45' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3E%24%3C/text%3E%3C/svg%3E">
-    <link rel="icon" sizes="192x192" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='white'/%3E%3Cpath d='M50 140 C 40 90, 70 60, 96 60 C 122 60, 152 90, 142 140 C 135 170, 57 170, 50 140 Z' fill='%23FF85A1'/%3E%3Crect x='80' y='50' width='32' height='15' rx='5' fill='%23FFB7C5'/%3E%3Cpath d='M80 55 L 70 30 L 96 45 L 122 30 L 112 55 Z' fill='%23FF85A1'/%3E%3Ctext x='96' y='130' font-size='45' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3E%24%3C/text%3E%3C/svg%3E">
-    <!-- ========================================== -->
-    <!-- 👆 修改為 白底 + 粉紅錢袋 結束 👆 -->
-    <!-- ========================================== -->
+    <!-- 預留給自動生成 PNG 圖示的標籤 -->
+    <link id="apple-icon" rel="apple-touch-icon" href="">
+    <link id="favicon" rel="icon" sizes="192x192" href="">
+
+    <!-- 自動繪製白底粉紅錢袋 PNG 的腳本 (解決 iPhone 不支援 SVG 的問題) -->
+    <script>
+        (function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 192;
+            canvas.height = 192;
+            const ctx = canvas.getContext('2d');
+
+            // 1. 畫純白背景 (解決變黑問題)
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, 192, 192);
+
+            // 2. 畫粉紅色錢袋
+            ctx.fillStyle = '#FF85A1';
+            
+            // 錢袋上半部 (束口)
+            ctx.beginPath();
+            ctx.moveTo(76, 75);
+            ctx.lineTo(50, 35);
+            ctx.lineTo(142, 35);
+            ctx.lineTo(116, 75);
+            ctx.fill();
+
+            // 錢袋綁帶
+            ctx.fillStyle = '#FFB7C5';
+            ctx.fillRect(76, 65, 40, 15);
+
+            // 錢袋下半部 (圓形袋身)
+            ctx.fillStyle = '#FF85A1';
+            ctx.beginPath();
+            ctx.arc(96, 120, 55, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3. 畫中間的白色錢幣符號
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 45px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('$', 96, 125);
+
+            // 轉換成真正的 PNG 格式並設定為圖示
+            const pngDataUrl = canvas.toDataURL('image/png');
+            document.getElementById('apple-icon').href = pngDataUrl;
+            document.getElementById('favicon').href = pngDataUrl;
+        })();
+    </script>
 
     <style>
         :root {
@@ -342,7 +383,6 @@
     let totalIncome = 0;
     let totalExpense = 0;
 
-    // --- 新增：從手機記憶體讀取資料 ---
     window.onload = function() {
         const savedData = localStorage.getItem('richWomanData');
         if (savedData) {
@@ -350,7 +390,6 @@
             document.getElementById('init-fund-input').value = data.currentFund;
             totalIncome = data.totalIncome || 0;
             totalExpense = data.totalExpense || 0;
-            // 讀取目標金額
             document.getElementById('target-goal1').value = data.target1 || 5900;
             document.getElementById('target-goal2').value = data.target2 || 10000;
             document.getElementById('target-goal3').value = data.target3 || 7000;
@@ -358,7 +397,6 @@
         updateAllCalculations();
     };
 
-    // --- 新增：儲存資料到手機 ---
     function saveData() {
         const data = {
             currentFund: parseFloat(document.getElementById('init-fund-input').value),
@@ -392,7 +430,7 @@
         updateProgressBar('goal2', currentFund, targets.goal2);
         updateProgressBar('goal3', currentFund, targets.goal3);
         
-        saveData(); // 每次計算完都存檔
+        saveData();
     }
 
     function updateProgressBar(id, current, target) {
