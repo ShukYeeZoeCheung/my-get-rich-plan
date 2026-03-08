@@ -157,7 +157,6 @@
         .settings-label { font-size: 12px; font-weight: bold; color: #888; display: flex; align-items: center; }
         .settings-label span { color: var(--sakura-deep); margin-right: 6px; }
         
-        /* 新增：目標名稱輸入框樣式 */
         .settings-name-input {
             border: none;
             border-bottom: 1px dashed var(--sakura-pink);
@@ -237,9 +236,9 @@
         .nav-item { flex: 1; padding: 12px; text-align: center; border-radius: 30px; font-size: 12px; font-weight: 900; cursor: pointer; color: var(--sakura-pink); transition: 0.3s; }
         .nav-item.active { background: var(--sakura-deep); color: white; }
 
-        .input-card { background: white; margin: 0 20px; padding: 20px; border-radius: 25px; border: 1.5px solid var(--sakura-light); }
+        .input-card { background: white; margin: 0 20px; padding: 20px; border-radius: 25px; border: 1.5px solid var(--sakura-light); position: relative; }
         .type-toggle { display: flex; background: var(--sakura-light); border-radius: 15px; padding: 4px; margin-bottom: 20px; }
-        .type-btn { flex: 1; padding: 10px; text-align: center; font-size: 12px; font-weight: 900; border-radius: 12px; cursor: pointer; color: var(--sakura-deep); }
+        .type-btn { flex: 1; padding: 10px; text-align: center; font-size: 12px; font-weight: 900; border-radius: 12px; cursor: pointer; color: var(--sakura-deep); transition: 0.3s; }
         .type-btn.active.expense { background: var(--sakura-deep); color: white; }
         .type-btn.active.income { background: var(--income-blue); color: white; }
         
@@ -247,8 +246,57 @@
         label { display: block; font-size: 10px; font-weight: 900; color: var(--sakura-pink); margin-bottom: 5px; }
         input, select { width: 100%; padding: 12px 15px; border-radius: 15px; border: 1.5px solid var(--sakura-light); outline: none; font-size: 14px; color: #5D5D5D; }
         
-        .btn-submit { width: 100%; padding: 15px; background: var(--sakura-deep); color: white; border: none; border-radius: 18px; font-weight: 900; cursor: pointer; margin-top: 10px; }
+        .btn-submit { width: 100%; padding: 15px; background: var(--sakura-deep); color: white; border: none; border-radius: 18px; font-weight: 900; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-submit.income-mode { background: var(--income-blue); }
+        .btn-submit.edit-mode { background: #D4AF37; }
+
+        .cancel-edit-btn {
+            display: none;
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            color: #AAA;
+            border: none;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+
+        /* 歷史記錄樣式 */
+        .record-list {
+            margin: 0 20px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .record-item {
+            background: white;
+            padding: 15px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--sakura-light);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .record-left { display: flex; align-items: center; gap: 12px; }
+        .record-icon { font-size: 20px; width: 40px; height: 40px; background: var(--sakura-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .record-details { display: flex; flex-direction: column; }
+        .record-cat { font-size: 13px; font-weight: bold; color: #5D5D5D; }
+        .record-note { font-size: 11px; color: #888; margin-top: 2px; }
+        .record-date { font-size: 9px; color: #CCC; margin-top: 2px; }
+        
+        .record-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+        .record-amount { font-size: 15px; font-weight: 900; }
+        .record-amount.expense { color: var(--sakura-deep); }
+        .record-amount.income { color: var(--income-blue); }
+        
+        .record-actions { display: flex; gap: 8px; margin-top: 5px; }
+        .action-btn { background: none; border: none; font-size: 14px; cursor: pointer; padding: 2px; opacity: 0.7; transition: 0.2s; }
+        .action-btn:hover { opacity: 1; }
+        
+        .empty-state { text-align: center; padding: 20px; color: #AAA; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -259,6 +307,7 @@
         <h1 class="title">成為富婆GOGOGO 💰</h1>
     </header>
 
+    <!-- 頁面 1：夢想頁面 -->
     <div id="page-dream" class="page active">
         <div class="balance-card">
             <div class="balance-label">當前富婆儲備金 🎀</div>
@@ -277,7 +326,6 @@
             <div class="setting-row">
                 <div class="settings-label">
                     <span>🎯</span>
-                    <!-- 加入可修改的名稱輸入框 -->
                     <input type="text" id="name-goal1" class="settings-name-input" value="清還卡數" oninput="updateAllCalculations()">
                 </div>
                 <input type="number" id="target-goal1" class="settings-input" value="5900" oninput="updateAllCalculations()">
@@ -303,7 +351,6 @@
             <div class="goal-icon">💵</div>
             <div class="goal-info">
                 <div class="goal-header">
-                    <!-- 這裡的名稱會自動跟隨設定更新 -->
                     <span class="goal-name"><span id="display-name-goal1">清還卡數</span> <span class="goal-target-text" id="label-goal1">($5,900)</span></span>
                     <span class="goal-percent" id="goal1-percent">0%</span>
                 </div>
@@ -352,7 +399,7 @@
         </div>
 
         <div class="section-title"><span>✍️</span> 增加富婆財富 RECORD</div>
-        <div class="input-card">
+        <div class="input-card" id="input-section">
             <div class="type-toggle">
                 <div id="tab-expense" class="type-btn active expense" onclick="setType('expense')">支出 💸</div>
                 <div id="tab-income" class="type-btn income" onclick="setType('income')">收入 💰</div>
@@ -364,13 +411,13 @@
             <div class="input-group">
                 <label>類別 CATEGORY</label>
                 <select id="input-category">
-                    <option>飲食 🍕</option>
-                    <option>交通 🚌</option>
-                    <option>薪金/獎金 💵</option>
-                    <option>生活開支 🛍️</option>
-                    <option>清還卡數 💳</option>
-                    <option>美甲/美容 💅</option>
-                    <option>其他 🌸</option>
+                    <option value="飲食 🍕">飲食 🍕</option>
+                    <option value="交通 🚌">交通 🚌</option>
+                    <option value="薪金/獎金 💵">薪金/獎金 💵</option>
+                    <option value="生活開支 🛍️">生活開支 🛍️</option>
+                    <option value="清還卡數 💳">清還卡數 💳</option>
+                    <option value="美甲/美容 💅">美甲/美容 💅</option>
+                    <option value="其他 🌸">其他 🌸</option>
                 </select>
             </div>
             <div class="input-group">
@@ -378,6 +425,13 @@
                 <input type="text" id="input-note" placeholder="例如：午餐、巴士、獎金...">
             </div>
             <button class="btn-submit" id="btn-submit" onclick="saveRecord()">記下這筆支出 🌸</button>
+            <button class="cancel-edit-btn" id="btn-cancel-edit" onclick="cancelEdit()">取消修改</button>
+        </div>
+
+        <!-- 新增：歷史記錄區塊 -->
+        <div class="section-title"><span>📜</span> 歷史記錄 HISTORY</div>
+        <div class="record-list" id="record-list">
+            <!-- 記錄會動態產生在這裡 -->
         </div>
     </div>
 
@@ -391,6 +445,8 @@
     let currentType = 'expense';
     let totalIncome = 0;
     let totalExpense = 0;
+    let records = []; // 儲存所有記錄的陣列
+    let editingId = null; // 當前正在編輯的記錄 ID
 
     window.onload = function() {
         const savedData = localStorage.getItem('richWomanData');
@@ -399,18 +455,18 @@
             document.getElementById('init-fund-input').value = data.currentFund;
             totalIncome = data.totalIncome || 0;
             totalExpense = data.totalExpense || 0;
+            records = data.records || [];
             
-            // 讀取目標金額
             document.getElementById('target-goal1').value = data.target1 || 5900;
             document.getElementById('target-goal2').value = data.target2 || 10000;
             document.getElementById('target-goal3').value = data.target3 || 7000;
 
-            // 讀取自定義目標名稱
             document.getElementById('name-goal1').value = data.name1 || '清還卡數';
             document.getElementById('name-goal2').value = data.name2 || 'S26 Ultra';
             document.getElementById('name-goal3').value = data.name3 || '泰國之旅';
         }
         updateAllCalculations();
+        renderRecords();
     };
 
     function saveData() {
@@ -418,6 +474,7 @@
             currentFund: parseFloat(document.getElementById('init-fund-input').value),
             totalIncome: totalIncome,
             totalExpense: totalExpense,
+            records: records,
             target1: document.getElementById('target-goal1').value,
             target2: document.getElementById('target-goal2').value,
             target3: document.getElementById('target-goal3').value,
@@ -436,23 +493,19 @@
             goal3: parseFloat(document.getElementById('target-goal3').value) || 1
         };
 
-        // 更新總金額顯示
         document.getElementById('display-balance').innerText = '$' + currentFund.toLocaleString();
         document.getElementById('ledger-balance-display').innerText = '$' + currentFund.toLocaleString();
         document.getElementById('total-income-display').innerText = '$' + totalIncome.toLocaleString();
         document.getElementById('total-expense-display').innerText = '$' + totalExpense.toLocaleString();
 
-        // 更新進度條上的名稱
         document.getElementById('display-name-goal1').innerText = document.getElementById('name-goal1').value || '目標 1';
         document.getElementById('display-name-goal2').innerText = document.getElementById('name-goal2').value || '目標 2';
         document.getElementById('display-name-goal3').innerText = document.getElementById('name-goal3').value || '目標 3';
 
-        // 更新進度條上的目標金額
         document.getElementById('label-goal1').innerText = '($' + targets.goal1.toLocaleString() + ')';
         document.getElementById('label-goal2').innerText = '($' + targets.goal2.toLocaleString() + ')';
         document.getElementById('label-goal3').innerText = '($' + targets.goal3.toLocaleString() + ')';
 
-        // 更新進度條長度
         updateProgressBar('goal1', currentFund, targets.goal1);
         updateProgressBar('goal2', currentFund, targets.goal2);
         updateProgressBar('goal3', currentFund, targets.goal3);
@@ -483,40 +536,213 @@
         const tabExpense = document.getElementById('tab-expense');
         const tabIncome = document.getElementById('tab-income');
         const btnSubmit = document.getElementById('btn-submit');
+        
         if (type === 'expense') {
             tabExpense.classList.add('active');
             tabIncome.classList.remove('active');
             btnSubmit.classList.remove('income-mode');
-            btnSubmit.innerText = '記下這筆支出 🌸';
+            if(!editingId) btnSubmit.innerText = '記下這筆支出 🌸';
         } else {
             tabIncome.classList.add('active');
             tabExpense.classList.remove('active');
             btnSubmit.classList.add('income-mode');
-            btnSubmit.innerText = '存入這筆收入 💰';
+            if(!editingId) btnSubmit.innerText = '存入這筆收入 💰';
         }
+    }
+
+    // 取得當前時間格式 (YYYY-MM-DD HH:mm)
+    function getCurrentDateTime() {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
     }
 
     function saveRecord() {
         const amountInput = document.getElementById('input-amount');
+        const categoryInput = document.getElementById('input-category');
+        const noteInput = document.getElementById('input-note');
+        
         const amount = parseFloat(amountInput.value);
         if (!amount) { alert('請輸入金額喔！🌸'); return; }
         
         let currentFund = parseFloat(document.getElementById('init-fund-input').value) || 0;
         
-        if (currentType === 'expense') {
-            currentFund -= amount;
-            totalExpense += amount;
+        if (editingId) {
+            // 編輯現有記錄
+            const recordIndex = records.findIndex(r => r.id === editingId);
+            if (recordIndex !== -1) {
+                const oldRecord = records[recordIndex];
+                
+                // 1. 先把舊的金額復原
+                if (oldRecord.type === 'expense') {
+                    currentFund += oldRecord.amount;
+                    totalExpense -= oldRecord.amount;
+                } else {
+                    currentFund -= oldRecord.amount;
+                    totalIncome -= oldRecord.amount;
+                }
+                
+                // 2. 加上新的金額
+                if (currentType === 'expense') {
+                    currentFund -= amount;
+                    totalExpense += amount;
+                } else {
+                    currentFund += amount;
+                    totalIncome += amount;
+                }
+
+                // 3. 更新記錄資料
+                records[recordIndex] = {
+                    ...oldRecord,
+                    amount: amount,
+                    category: categoryInput.value,
+                    note: noteInput.value,
+                    type: currentType
+                };
+                
+                alert('記錄已更新！✨');
+            }
+            cancelEdit(); // 退出編輯模式
         } else {
-            currentFund += amount;
-            totalIncome += amount;
+            // 新增記錄
+            if (currentType === 'expense') {
+                currentFund -= amount;
+                totalExpense += amount;
+            } else {
+                currentFund += amount;
+                totalIncome += amount;
+            }
+            
+            const newRecord = {
+                id: Date.now(),
+                type: currentType,
+                amount: amount,
+                category: categoryInput.value,
+                note: noteInput.value || '無備註',
+                date: getCurrentDateTime()
+            };
+            
+            records.unshift(newRecord); // 加到陣列最前面
+            alert('記錄成功！富婆之路又進一步了！✨');
         }
         
         document.getElementById('init-fund-input').value = currentFund;
-        updateAllCalculations();
-        
-        alert('記錄成功！富婆之路又進一步了！✨');
         amountInput.value = '';
+        noteInput.value = '';
+        
+        updateAllCalculations();
+        renderRecords();
+    }
+
+    // 渲染歷史記錄列表
+    function renderRecords() {
+        const listContainer = document.getElementById('record-list');
+        listContainer.innerHTML = '';
+
+        if (records.length === 0) {
+            listContainer.innerHTML = '<div class="empty-state">還沒有記錄喔，開始記帳吧！🌸</div>';
+            return;
+        }
+
+        records.forEach(record => {
+            const isExpense = record.type === 'expense';
+            const sign = isExpense ? '-' : '+';
+            const amountClass = isExpense ? 'expense' : 'income';
+            
+            // 提取 emoji 作為 icon
+            const emojiMatch = record.category.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\p{Emoji_Presentation}/gu);
+            const icon = emojiMatch ? emojiMatch[0] : '🌸';
+            const catName = record.category.replace(icon, '').trim();
+
+            const recordEl = document.createElement('div');
+            recordEl.className = 'record-item';
+            recordEl.innerHTML = `
+                <div class="record-left">
+                    <div class="record-icon">${icon}</div>
+                    <div class="record-details">
+                        <span class="record-cat">${catName}</span>
+                        <span class="record-note">${record.note}</span>
+                        <span class="record-date">${record.date}</span>
+                    </div>
+                </div>
+                <div class="record-right">
+                    <span class="record-amount ${amountClass}">${sign}$${record.amount.toLocaleString()}</span>
+                    <div class="record-actions">
+                        <button class="action-btn" onclick="editRecord(${record.id})">✏️</button>
+                        <button class="action-btn" onclick="deleteRecord(${record.id})">🗑️</button>
+                    </div>
+                </div>
+            `;
+            listContainer.appendChild(recordEl);
+        });
+    }
+
+    // 刪除記錄
+    function deleteRecord(id) {
+        if (!confirm('確定要刪除這筆記錄嗎？刪除後金額會自動扣回喔！')) return;
+
+        const recordIndex = records.findIndex(r => r.id === id);
+        if (recordIndex !== -1) {
+            const record = records[recordIndex];
+            let currentFund = parseFloat(document.getElementById('init-fund-input').value) || 0;
+            
+            // 復原金額
+            if (record.type === 'expense') {
+                currentFund += record.amount;
+                totalExpense -= record.amount;
+            } else {
+                currentFund -= record.amount;
+                totalIncome -= record.amount;
+            }
+            
+            document.getElementById('init-fund-input').value = currentFund;
+            records.splice(recordIndex, 1); // 從陣列移除
+            
+            updateAllCalculations();
+            renderRecords();
+        }
+    }
+
+    // 編輯記錄
+    function editRecord(id) {
+        const record = records.find(r => r.id === id);
+        if (!record) return;
+
+        editingId = id;
+        
+        // 填入資料
+        document.getElementById('input-amount').value = record.amount;
+        document.getElementById('input-category').value = record.category;
+        document.getElementById('input-note').value = record.note === '無備註' ? '' : record.note;
+        
+        // 切換類型
+        setType(record.type);
+        
+        // 更改按鈕樣式
+        const btnSubmit = document.getElementById('btn-submit');
+        btnSubmit.innerText = '更新記錄 🌸';
+        btnSubmit.classList.add('edit-mode');
+        document.getElementById('btn-cancel-edit').style.display = 'block';
+
+        // 滾動到輸入區塊
+        document.getElementById('input-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 取消編輯
+    function cancelEdit() {
+        editingId = null;
+        document.getElementById('input-amount').value = '';
         document.getElementById('input-note').value = '';
+        
+        const btnSubmit = document.getElementById('btn-submit');
+        btnSubmit.classList.remove('edit-mode');
+        document.getElementById('btn-cancel-edit').style.display = 'none';
+        
+        setType(currentType); // 恢復原本的按鈕文字
     }
 </script>
 </body>
