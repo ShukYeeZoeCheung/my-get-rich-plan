@@ -346,7 +346,20 @@
             </div>
         </div>
 
-        <div class="section-title"><span>📈</span> 夢想進度條 PROGRESS</div>
+        <!-- 新增：總體目標進度 -->
+        <div class="section-title"><span>🌟</span> 總體目標進度 TOTAL PROGRESS</div>
+        <div class="goal-card" style="background: linear-gradient(135deg, #FFF0F3 0%, #FFFFFF 100%); border: 1px solid var(--sakura-pink);">
+            <div class="goal-icon" style="background: var(--sakura-pink); color: white;">👑</div>
+            <div class="goal-info">
+                <div class="goal-header">
+                    <span class="goal-name">總目標金額 <span class="goal-target-text" id="label-total-goal">($0)</span></span>
+                    <span class="goal-percent" id="total-goal-percent" style="color: var(--gold);">0%</span>
+                </div>
+                <div class="progress-bg"><div class="progress-fill" id="total-goal-bar" style="width: 0%; background: linear-gradient(90deg, #D4AF37, #FF85A1);"></div></div>
+            </div>
+        </div>
+
+        <div class="section-title"><span>📈</span> 單項夢想進度 INDIVIDUAL PROGRESS</div>
         <div class="goal-card" style="border-left: 5px solid #FF85A1;">
             <div class="goal-icon">💵</div>
             <div class="goal-info">
@@ -428,7 +441,6 @@
             <button class="cancel-edit-btn" id="btn-cancel-edit" onclick="cancelEdit()">取消修改</button>
         </div>
 
-        <!-- 新增：歷史記錄區塊 -->
         <div class="section-title"><span>📜</span> 歷史記錄 HISTORY</div>
         <div class="record-list" id="record-list">
             <!-- 記錄會動態產生在這裡 -->
@@ -445,8 +457,8 @@
     let currentType = 'expense';
     let totalIncome = 0;
     let totalExpense = 0;
-    let records = []; // 儲存所有記錄的陣列
-    let editingId = null; // 當前正在編輯的記錄 ID
+    let records = []; 
+    let editingId = null; 
 
     window.onload = function() {
         const savedData = localStorage.getItem('richWomanData');
@@ -488,10 +500,13 @@
     function updateAllCalculations() {
         const currentFund = parseFloat(document.getElementById('init-fund-input').value) || 0;
         const targets = {
-            goal1: parseFloat(document.getElementById('target-goal1').value) || 1,
-            goal2: parseFloat(document.getElementById('target-goal2').value) || 1,
-            goal3: parseFloat(document.getElementById('target-goal3').value) || 1
+            goal1: parseFloat(document.getElementById('target-goal1').value) || 0,
+            goal2: parseFloat(document.getElementById('target-goal2').value) || 0,
+            goal3: parseFloat(document.getElementById('target-goal3').value) || 0
         };
+
+        // 計算總目標金額
+        const totalTargetAmount = targets.goal1 + targets.goal2 + targets.goal3;
 
         document.getElementById('display-balance').innerText = '$' + currentFund.toLocaleString();
         document.getElementById('ledger-balance-display').innerText = '$' + currentFund.toLocaleString();
@@ -506,14 +521,22 @@
         document.getElementById('label-goal2').innerText = '($' + targets.goal2.toLocaleString() + ')';
         document.getElementById('label-goal3').innerText = '($' + targets.goal3.toLocaleString() + ')';
 
+        // 更新總目標顯示
+        document.getElementById('label-total-goal').innerText = '($' + totalTargetAmount.toLocaleString() + ')';
+
+        // 更新各個進度條
         updateProgressBar('goal1', currentFund, targets.goal1);
         updateProgressBar('goal2', currentFund, targets.goal2);
         updateProgressBar('goal3', currentFund, targets.goal3);
+        
+        // 更新總進度條
+        updateProgressBar('total-goal', currentFund, totalTargetAmount);
         
         saveData();
     }
 
     function updateProgressBar(id, current, target) {
+        if (target <= 0) target = 1; // 避免除以零
         let percent = (current / target) * 100;
         if (percent > 100) percent = 100;
         if (percent < 0) percent = 0;
@@ -550,7 +573,6 @@
         }
     }
 
-    // 取得當前時間格式 (YYYY-MM-DD HH:mm)
     function getCurrentDateTime() {
         const now = new Date();
         const yyyy = now.getFullYear();
@@ -572,12 +594,10 @@
         let currentFund = parseFloat(document.getElementById('init-fund-input').value) || 0;
         
         if (editingId) {
-            // 編輯現有記錄
             const recordIndex = records.findIndex(r => r.id === editingId);
             if (recordIndex !== -1) {
                 const oldRecord = records[recordIndex];
                 
-                // 1. 先把舊的金額復原
                 if (oldRecord.type === 'expense') {
                     currentFund += oldRecord.amount;
                     totalExpense -= oldRecord.amount;
@@ -586,7 +606,6 @@
                     totalIncome -= oldRecord.amount;
                 }
                 
-                // 2. 加上新的金額
                 if (currentType === 'expense') {
                     currentFund -= amount;
                     totalExpense += amount;
@@ -595,7 +614,6 @@
                     totalIncome += amount;
                 }
 
-                // 3. 更新記錄資料
                 records[recordIndex] = {
                     ...oldRecord,
                     amount: amount,
@@ -606,9 +624,8 @@
                 
                 alert('記錄已更新！✨');
             }
-            cancelEdit(); // 退出編輯模式
+            cancelEdit(); 
         } else {
-            // 新增記錄
             if (currentType === 'expense') {
                 currentFund -= amount;
                 totalExpense += amount;
@@ -626,7 +643,7 @@
                 date: getCurrentDateTime()
             };
             
-            records.unshift(newRecord); // 加到陣列最前面
+            records.unshift(newRecord); 
             alert('記錄成功！富婆之路又進一步了！✨');
         }
         
@@ -638,7 +655,6 @@
         renderRecords();
     }
 
-    // 渲染歷史記錄列表
     function renderRecords() {
         const listContainer = document.getElementById('record-list');
         listContainer.innerHTML = '';
@@ -653,7 +669,6 @@
             const sign = isExpense ? '-' : '+';
             const amountClass = isExpense ? 'expense' : 'income';
             
-            // 提取 emoji 作為 icon
             const emojiMatch = record.category.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\p{Emoji_Presentation}/gu);
             const icon = emojiMatch ? emojiMatch[0] : '🌸';
             const catName = record.category.replace(icon, '').trim();
@@ -681,7 +696,6 @@
         });
     }
 
-    // 刪除記錄
     function deleteRecord(id) {
         if (!confirm('確定要刪除這筆記錄嗎？刪除後金額會自動扣回喔！')) return;
 
@@ -690,7 +704,6 @@
             const record = records[recordIndex];
             let currentFund = parseFloat(document.getElementById('init-fund-input').value) || 0;
             
-            // 復原金額
             if (record.type === 'expense') {
                 currentFund += record.amount;
                 totalExpense -= record.amount;
@@ -700,39 +713,33 @@
             }
             
             document.getElementById('init-fund-input').value = currentFund;
-            records.splice(recordIndex, 1); // 從陣列移除
+            records.splice(recordIndex, 1); 
             
             updateAllCalculations();
             renderRecords();
         }
     }
 
-    // 編輯記錄
     function editRecord(id) {
         const record = records.find(r => r.id === id);
         if (!record) return;
 
         editingId = id;
         
-        // 填入資料
         document.getElementById('input-amount').value = record.amount;
         document.getElementById('input-category').value = record.category;
         document.getElementById('input-note').value = record.note === '無備註' ? '' : record.note;
         
-        // 切換類型
         setType(record.type);
         
-        // 更改按鈕樣式
         const btnSubmit = document.getElementById('btn-submit');
         btnSubmit.innerText = '更新記錄 🌸';
         btnSubmit.classList.add('edit-mode');
         document.getElementById('btn-cancel-edit').style.display = 'block';
 
-        // 滾動到輸入區塊
         document.getElementById('input-section').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 取消編輯
     function cancelEdit() {
         editingId = null;
         document.getElementById('input-amount').value = '';
@@ -742,7 +749,7 @@
         btnSubmit.classList.remove('edit-mode');
         document.getElementById('btn-cancel-edit').style.display = 'none';
         
-        setType(currentType); // 恢復原本的按鈕文字
+        setType(currentType); 
     }
 </script>
 </body>
