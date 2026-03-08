@@ -1,154 +1,117 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>富婆記帳</title>
+<script>
+    let currentType = 'expense';
+    let totalIncome = 0;
+    let totalExpense = 0;
 
-    <!-- ========================================== -->
-    <!-- 新增：加入主畫面時的 Icon 與 App 外觀設定 -->
-    <!-- ========================================== -->
-    
-    <!-- 允許網頁以全螢幕 App 模式執行 (隱藏瀏覽器網址列) -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    
-    <!-- 設定 iOS 狀態列的顏色 -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
-    <!-- 設定加入主畫面時顯示的 App 名稱 -->
-    <meta name="apple-mobile-web-app-title" content="富婆記帳">
+    // --- 新增：從手機記憶體讀取資料 ---
+    window.onload = function() {
+        const savedData = localStorage.getItem('richWomanData');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            document.getElementById('init-fund-input').value = data.currentFund;
+            totalIncome = data.totalIncome || 0;
+            totalExpense = data.totalExpense || 0;
+            // 讀取目標金額
+            document.getElementById('target-goal1').value = data.target1 || 5900;
+            document.getElementById('target-goal2').value = data.target2 || 10000;
+            document.getElementById('target-goal3').value = data.target3 || 7000;
+        }
+        updateAllCalculations();
+    };
 
-    <!-- 
-      客製化 SVG Icon (粉紅漸層 + 💰) 
-      直接將圖形寫在網址裡，不需要額外上傳圖片檔案！
-    -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='pinkGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff9a9e'/%3E%3Cstop offset='100%25' stop-color='%23fecfef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='115' fill='url(%23pinkGrad)'/%3E%3Ctext x='50%25' y='54%25' font-size='280' text-anchor='middle' dominant-baseline='middle'%3E💰%3C/text%3E%3C/svg%3E">
-    
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='pinkGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff9a9e'/%3E%3Cstop offset='100%25' stop-color='%23fecfef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='115' fill='url(%23pinkGrad)'/%3E%3Ctext x='50%25' y='54%25' font-size='280' text-anchor='middle' dominant-baseline='middle'%3E💰%3C/text%3E%3C/svg%3E">
-    
-    <!-- ========================================== -->
-</head>
-<body>
+    // --- 新增：儲存資料到手機 ---
+    function saveData() {
+        const data = {
+            currentFund: parseFloat(document.getElementById('init-fund-input').value),
+            totalIncome: totalIncome,
+            totalExpense: totalExpense,
+            target1: document.getElementById('target-goal1').value,
+            target2: document.getElementById('target-goal2').value,
+            target3: document.getElementById('target-goal3').value
+        };
+        localStorage.setItem('richWomanData', JSON.stringify(data));
+    }
 
-    <!-- 這裡應該是你的 HTML 介面 (按鈕、輸入框等) -->
-
-    <script>
-        let currentType = 'expense';
-        let totalIncome = 0;
-        let totalExpense = 0;
-
-        // --- 新增：從手機記憶體讀取資料 ---
-        window.onload = function() {
-            const savedData = localStorage.getItem('richWomanData');
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                document.getElementById('init-fund-input').value = data.currentFund;
-                totalIncome = data.totalIncome || 0;
-                totalExpense = data.totalExpense || 0;
-                // 讀取目標金額
-                document.getElementById('target-goal1').value = data.target1 || 5900;
-                document.getElementById('target-goal2').value = data.target2 || 10000;
-                document.getElementById('target-goal3').value = data.target3 || 7000;
-            }
-            updateAllCalculations();
+    function updateAllCalculations() {
+        const currentFund = parseFloat(document.getElementById('init-fund-input').value) || 0;
+        const targets = {
+            goal1: parseFloat(document.getElementById('target-goal1').value) || 1,
+            goal2: parseFloat(document.getElementById('target-goal2').value) || 1,
+            goal3: parseFloat(document.getElementById('target-goal3').value) || 1
         };
 
-        // --- 新增：儲存資料到手機 ---
-        function saveData() {
-            const data = {
-                currentFund: parseFloat(document.getElementById('init-fund-input').value),
-                totalIncome: totalIncome,
-                totalExpense: totalExpense,
-                target1: document.getElementById('target-goal1').value,
-                target2: document.getElementById('target-goal2').value,
-                target3: document.getElementById('target-goal3').value
-            };
-            localStorage.setItem('richWomanData', JSON.stringify(data));
+        document.getElementById('display-balance').innerText = '$' + currentFund.toLocaleString();
+        document.getElementById('ledger-balance-display').innerText = '$' + currentFund.toLocaleString();
+        document.getElementById('total-income-display').innerText = '$' + totalIncome.toLocaleString();
+        document.getElementById('total-expense-display').innerText = '$' + totalExpense.toLocaleString();
+
+        document.getElementById('label-goal1').innerText = '($' + targets.goal1.toLocaleString() + ')';
+        document.getElementById('label-goal2').innerText = '($' + targets.goal2.toLocaleString() + ')';
+        document.getElementById('label-goal3').innerText = '($' + targets.goal3.toLocaleString() + ')';
+
+        updateProgressBar('goal1', currentFund, targets.goal1);
+        updateProgressBar('goal2', currentFund, targets.goal2);
+        updateProgressBar('goal3', currentFund, targets.goal3);
+        
+        saveData(); // 每次計算完都存檔
+    }
+
+    function updateProgressBar(id, current, target) {
+        let percent = (current / target) * 100;
+        if (percent > 100) percent = 100;
+        if (percent < 0) percent = 0;
+        document.getElementById(id + '-percent').innerText = Math.floor(percent) + '%';
+        document.getElementById(id + '-bar').style.width = percent + '%';
+    }
+
+    function switchPage(pageId, element) {
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + pageId).classList.add('active');
+
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => item.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    function setType(type) {
+        currentType = type;
+        const tabExpense = document.getElementById('tab-expense');
+        const tabIncome = document.getElementById('tab-income');
+        const btnSubmit = document.getElementById('btn-submit');
+        if (type === 'expense') {
+            tabExpense.classList.add('active');
+            tabIncome.classList.remove('active');
+            btnSubmit.classList.remove('income-mode');
+            btnSubmit.innerText = '記下這筆支出 🌸';
+        } else {
+            tabIncome.classList.add('active');
+            tabExpense.classList.remove('active');
+            btnSubmit.classList.add('income-mode');
+            btnSubmit.innerText = '存入這筆收入 💰';
         }
+    }
 
-        function updateAllCalculations() {
-            const currentFund = parseFloat(document.getElementById('init-fund-input').value) || 0;
-            const targets = {
-                goal1: parseFloat(document.getElementById('target-goal1').value) || 1,
-                goal2: parseFloat(document.getElementById('target-goal2').value) || 1,
-                goal3: parseFloat(document.getElementById('target-goal3').value) || 1
-            };
-
-            document.getElementById('display-balance').innerText = '$' + currentFund.toLocaleString();
-            document.getElementById('ledger-balance-display').innerText = '$' + currentFund.toLocaleString();
-            document.getElementById('total-income-display').innerText = '$' + totalIncome.toLocaleString();
-            document.getElementById('total-expense-display').innerText = '$' + totalExpense.toLocaleString();
-
-            document.getElementById('label-goal1').innerText = '($' + targets.goal1.toLocaleString() + ')';
-            document.getElementById('label-goal2').innerText = '($' + targets.goal2.toLocaleString() + ')';
-            document.getElementById('label-goal3').innerText = '($' + targets.goal3.toLocaleString() + ')';
-
-            updateProgressBar('goal1', currentFund, targets.goal1);
-            updateProgressBar('goal2', currentFund, targets.goal2);
-            updateProgressBar('goal3', currentFund, targets.goal3);
-            
-            saveData(); // 每次計算完都存檔
+    function saveRecord() {
+        const amountInput = document.getElementById('input-amount');
+        const amount = parseFloat(amountInput.value);
+        if (!amount) { alert('請輸入金額喔！🌸'); return; }
+        
+        let currentFund = parseFloat(document.getElementById('init-fund-input').value) || 0;
+        
+        if (currentType === 'expense') {
+            currentFund -= amount;
+            totalExpense += amount;
+        } else {
+            currentFund += amount;
+            totalIncome += amount;
         }
-
-        function updateProgressBar(id, current, target) {
-            let percent = (current / target) * 100;
-            if (percent > 100) percent = 100;
-            if (percent < 0) percent = 0;
-            document.getElementById(id + '-percent').innerText = Math.floor(percent) + '%';
-            document.getElementById(id + '-bar').style.width = percent + '%';
-        }
-
-        function switchPage(pageId, element) {
-            const pages = document.querySelectorAll('.page');
-            pages.forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + pageId).classList.add('active');
-
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => item.classList.remove('active'));
-            element.classList.add('active');
-        }
-
-        function setType(type) {
-            currentType = type;
-            const tabExpense = document.getElementById('tab-expense');
-            const tabIncome = document.getElementById('tab-income');
-            const btnSubmit = document.getElementById('btn-submit');
-            if (type === 'expense') {
-                tabExpense.classList.add('active');
-                tabIncome.classList.remove('active');
-                btnSubmit.classList.remove('income-mode');
-                btnSubmit.innerText = '記下這筆支出 🌸';
-            } else {
-                tabIncome.classList.add('active');
-                tabExpense.classList.remove('active');
-                btnSubmit.classList.add('income-mode');
-                btnSubmit.innerText = '存入這筆收入 💰';
-            }
-        }
-
-        function saveRecord() {
-            const amountInput = document.getElementById('input-amount');
-            const amount = parseFloat(amountInput.value);
-            if (!amount) { alert('請輸入金額喔！🌸'); return; }
-            
-            let currentFund = parseFloat(document.getElementById('init-fund-input').value) || 0;
-            
-            if (currentType === 'expense') {
-                currentFund -= amount;
-                totalExpense += amount;
-            } else {
-                currentFund += amount;
-                totalIncome += amount;
-            }
-            
-            document.getElementById('init-fund-input').value = currentFund;
-            updateAllCalculations();
-            
-            alert('記錄成功！富婆之路又進一步了！✨');
-            amountInput.value = '';
-            document.getElementById('input-note').value = '';
-        }
-    </script>
-</body>
-</html>
+        
+        document.getElementById('init-fund-input').value = currentFund;
+        updateAllCalculations();
+        
+        alert('記錄成功！富婆之路又進一步了！✨');
+        amountInput.value = '';
+        document.getElementById('input-note').value = '';
+    }
+</script>
